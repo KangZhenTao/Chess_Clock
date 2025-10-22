@@ -21,3 +21,6 @@ Unit1.html
 *.dcp
 *.map
 *.stat
+
+Win32
+Win64
