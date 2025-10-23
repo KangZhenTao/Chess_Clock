@@ -1,4 +1,4 @@
-unit u_clock_intf;
+ï»¿unit u_clock_intf;
 
 interface
 
@@ -6,22 +6,22 @@ type
   IClock = interface
     ['{1C132F5A-3FE4-4792-9979-64DE76C40960}']
 
-    // ÉèÖÃÊ±¼ä
+    // è®¾ç½®æ—¶é—´
     procedure SetTime(Hour, Minute, Second: Word);
 
-    // ÖØÖÃÊ±ÖÓµ½³õÊ¼×´Ì¬
+    // é‡ç½®æ—¶é’Ÿåˆ°åˆå§‹çŠ¶æ€
     procedure Reset;
 
-    // ÔİÍ£Ê±ÖÓÔËĞĞ
+    // æš‚åœæ—¶é’Ÿè¿è¡Œ
     procedure Pause;
 
-    // ¼ÌĞøÊ±ÖÓÔËĞĞ
+    // ç»§ç»­æ—¶é’Ÿè¿è¡Œ
     procedure Resume;
 
-    // »ñÈ¡µ±Ç°Ê±¼ä
+    // è·å–å½“å‰æ—¶é—´
     procedure GetTime(out Hour, Minute, Second: Word);
 
-    // ¼ì²éÊ±ÖÓÊÇ·ñÔÚÔËĞĞ
+    // æ£€æŸ¥æ—¶é’Ÿæ˜¯å¦åœ¨è¿è¡Œ
     function IsRunning: Boolean;
   end;
 
