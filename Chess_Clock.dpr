@@ -1,4 +1,4 @@
-program Proj_001_Test;
+program Chess_Clock;
 
 uses
   Vcl.Forms,
