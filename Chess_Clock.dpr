@@ -3,7 +3,8 @@ program Chess_Clock;
 uses
   Vcl.Forms,
   MainForm in 'form\MainForm.pas' {Form1},
-  u_clock_intf in 'clock_tick_rules\u_clock_intf.pas';
+  u_clock_intf in 'clock_tick_rules\u_clock_intf.pas',
+  u_clock_impl in 'clock_tick_rules\u_clock_impl.pas';
 
 {$R *.res}
 

@@ -1,19 +1,17 @@
-﻿unit u_clock_intf;
+﻿unit u_clock_impl;
 
 interface
 
+uses
+  u_clock_intf;
+
 type
-  TErrorCode = (
-    ecSuccess = 0,
-    ecInvalidParameter,
-    ecNotInitialized,
-    // ... 其他错误码
-    ecDummy = $7fffffff
-  );
+  TChessClock = class(TInterfacedObject, IClock)
+  private
+    FRemainingTimeInSecond:Cardinal;
+  public
 
-  IClock = interface
-    ['{1C132F5A-3FE4-4792-9979-64DE76C40960}']
-
+    {$REGION 'IClock'}
     /// <summary>
     /// 设置倒计时时间
     /// </summary>
@@ -51,9 +49,58 @@ type
     /// 检查时钟是否在运行
     /// </summary>
     function IsRunning(out Running: Boolean): TErrorCode;
+    {$ENDREGION}
+    constructor Create;
+    destructor Destroy;override;
   end;
 
 implementation
+
+{ TChessClock }
+
+constructor TChessClock.Create();
+begin
+  inherited;
+  FRemainingTimeInSecond := 60 * 60 * 1;
+end;
+
+destructor TChessClock.Destroy;
+begin
+
+  inherited;
+end;
+
+function TChessClock.GetRemainingTime(out Hours, Minutes,
+  Seconds: Word): TErrorCode;
+begin
+  Result := TErrorCode.ecDummy;
+end;
+
+function TChessClock.IsRunning(out Running: Boolean): TErrorCode;
+begin
+  Result := TErrorCode.ecDummy;
+end;
+
+procedure TChessClock.Pause;
+begin
+
+end;
+
+procedure TChessClock.Reset;
+begin
+
+end;
+
+procedure TChessClock.Resume;
+begin
+
+end;
+
+function TChessClock.SetCountdownTime(Hours, Minutes,
+  Seconds: Word): TErrorCode;
+begin
+  Result := TErrorCode.ecDummy;
+end;
 
 end.
 
