@@ -21,7 +21,7 @@ type
     /// <param name="Minutes">倒计时分钟数</param>
     /// <param name="Seconds">倒计时秒数</param>
     /// <returns>错误码，默认为0，无错误</returns>
-    function SetCountdownTime(Hours, Minutes, Seconds: Word): TErrorCode;
+    function SetCountdownTime(const Hours, Minutes, Seconds: Word): TErrorCode;
 
     /// <summary>
     /// 重置时钟到初始状态

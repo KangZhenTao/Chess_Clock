@@ -8,9 +8,12 @@ uses
 type
   TChessClock = class(TInterfacedObject, IClock)
   private
-    FRemainingTimeInSecond:Cardinal;
+    FSetTimeInSecond: Cardinal;
+    FRemainingTimeInSecond: Cardinal;
+  published
+    property SetTimeInSecond: Cardinal read FSetTimeInSecond write FSetTimeInSecond;
+    property RemainingTimeInSecond: Cardinal read FRemainingTimeInSecond write FRemainingTimeInSecond;
   public
-
     {$REGION 'IClock'}
     /// <summary>
     /// 设置倒计时时间
@@ -19,7 +22,7 @@ type
     /// <param name="Minutes">倒计时分钟数</param>
     /// <param name="Seconds">倒计时秒数</param>
     /// <returns>错误码，默认为0，无错误</returns>
-    function SetCountdownTime(Hours, Minutes, Seconds: Word): TErrorCode;
+    function SetCountdownTime(const Hours, Minutes, Seconds: Word): TErrorCode;
 
     /// <summary>
     /// 重置时钟到初始状态
@@ -51,7 +54,7 @@ type
     function IsRunning(out Running: Boolean): TErrorCode;
     {$ENDREGION}
     constructor Create;
-    destructor Destroy;override;
+    destructor Destroy; override;
   end;
 
 implementation
@@ -61,7 +64,8 @@ implementation
 constructor TChessClock.Create();
 begin
   inherited;
-  FRemainingTimeInSecond := 60 * 60 * 1;
+  FSetTimeInSecond := 0;
+  FRemainingTimeInSecond := 0;
 end;
 
 destructor TChessClock.Destroy;
@@ -70,14 +74,17 @@ begin
   inherited;
 end;
 
-function TChessClock.GetRemainingTime(out Hours, Minutes,
-  Seconds: Word): TErrorCode;
+function TChessClock.GetRemainingTime(out Hours, Minutes, Seconds: Word): TErrorCode;
 begin
+  Hours := RemainingTimeInSecond div 3600;
+  Minutes :=  (RemainingTimeInSecond mod 3600) div 60;
+  Seconds := RemainingTimeInSecond mod 60;
   Result := TErrorCode.ecDummy;
 end;
 
 function TChessClock.IsRunning(out Running: Boolean): TErrorCode;
 begin
+
   Result := TErrorCode.ecDummy;
 end;
 
@@ -88,7 +95,7 @@ end;
 
 procedure TChessClock.Reset;
 begin
-
+  RemainingTimeInSecond := SetTimeInSecond
 end;
 
 procedure TChessClock.Resume;
@@ -96,9 +103,9 @@ begin
 
 end;
 
-function TChessClock.SetCountdownTime(Hours, Minutes,
-  Seconds: Word): TErrorCode;
+function TChessClock.SetCountdownTime(const Hours, Minutes, Seconds: Word): TErrorCode;
 begin
+  SetTimeInSecond := Hours * 3600 + Minutes * 60 + Seconds;
   Result := TErrorCode.ecDummy;
 end;
 
