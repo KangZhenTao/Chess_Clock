@@ -8,8 +8,10 @@ uses
 type
   TChessClock = class(TInterfacedObject, ICountDownClock)
   private
+    FPlusSecondePerStep: Cardinal;
     FSetTimeInSecond: Cardinal;
     FRemainingTimeInSecond: Cardinal;
+    procedure Process();
   published
     property SetTimeInSecond: Cardinal read FSetTimeInSecond write FSetTimeInSecond;
     property RemainingTimeInSecond: Cardinal read FRemainingTimeInSecond write FRemainingTimeInSecond;
@@ -53,6 +55,13 @@ type
     /// </summary>
     function IsRunning(out Running: Boolean): TErrorCode;
     {$ENDREGION}
+
+    /// <summary>
+    /// 多一步棋所增加时间
+    /// </summary>
+    /// <param name="Seconds">秒数</param>
+    /// <returns>错误码，默认为0，无错误</returns>
+    function PlusTime(const Seconds: Cardinal): TErrorCode;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -60,6 +69,17 @@ type
 implementation
 
 { TChessClock }
+
+function TChessClock.PlusTime(const Seconds: Cardinal): TErrorCode;
+begin
+  FPlusSecondePerStep := Seconds;
+  Result := TErrorCode.ecDummy;
+end;
+
+procedure TChessClock.Process;
+begin
+
+end;
 
 constructor TChessClock.Create();
 begin
@@ -74,6 +94,7 @@ begin
   inherited;
 end;
 
+{$REGION 'ICountDownClock'}
 function TChessClock.GetRemainingTime(out Hours, Minutes, Seconds: Word): TErrorCode;
 begin
   Hours := RemainingTimeInSecond div 3600;
@@ -108,6 +129,7 @@ begin
   SetTimeInSecond := Hours * 3600 + Minutes * 60 + Seconds;
   Result := TErrorCode.ecDummy;
 end;
+{$ENDREGION}
 
 end.
 
