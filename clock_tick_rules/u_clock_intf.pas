@@ -11,7 +11,7 @@ type
     ecDummy = $7fffffff
   );
 
-  IClock = interface
+  ICountDownClock = interface
     ['{1C132F5A-3FE4-4792-9979-64DE76C40960}']
 
     /// <summary>

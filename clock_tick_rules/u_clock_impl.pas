@@ -6,7 +6,7 @@ uses
   u_clock_intf;
 
 type
-  TChessClock = class(TInterfacedObject, IClock)
+  TChessClock = class(TInterfacedObject, ICountDownClock)
   private
     FSetTimeInSecond: Cardinal;
     FRemainingTimeInSecond: Cardinal;
@@ -14,7 +14,7 @@ type
     property SetTimeInSecond: Cardinal read FSetTimeInSecond write FSetTimeInSecond;
     property RemainingTimeInSecond: Cardinal read FRemainingTimeInSecond write FRemainingTimeInSecond;
   public
-    {$REGION 'IClock'}
+    {$REGION 'ICountDownClock'}
     /// <summary>
     /// 设置倒计时时间
     /// </summary>
