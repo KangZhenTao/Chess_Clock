@@ -3,7 +3,7 @@
 interface
 
 uses
-  u_clock_intf;
+  u_clock_intf, Classes;
 
 type
   TChessClock = class(TInterfacedObject, ICountDownClock)
@@ -12,6 +12,9 @@ type
     FSetTimeInSecond: Cardinal;
     FRemainingTimeInSecond: Cardinal;
     procedure Process();
+    type InnerThread = class(TThread)
+
+    end;
   published
     property SetTimeInSecond: Cardinal read FSetTimeInSecond write FSetTimeInSecond;
     property RemainingTimeInSecond: Cardinal read FRemainingTimeInSecond write FRemainingTimeInSecond;
@@ -61,7 +64,7 @@ type
     /// </summary>
     /// <param name="Seconds">秒数</param>
     /// <returns>错误码，默认为0，无错误</returns>
-    function PlusTime(const Seconds: Cardinal): TErrorCode;
+    function SetPlusTime(const Seconds: Cardinal): TErrorCode;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -70,7 +73,7 @@ implementation
 
 { TChessClock }
 
-function TChessClock.PlusTime(const Seconds: Cardinal): TErrorCode;
+function TChessClock.SetPlusTime(const Seconds: Cardinal): TErrorCode;
 begin
   FPlusSecondePerStep := Seconds;
   Result := TErrorCode.ecDummy;
