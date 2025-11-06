@@ -8,16 +8,8 @@ uses
 type
   TChessClock = class(TInterfacedObject, ICountDownClock)
   private
-    FPlusSecondePerStep: Cardinal;
-    FSetTimeInSecond: Cardinal;
-    FRemainingTimeInSecond: Cardinal;
-    FIsRunning: Boolean;
-    FIsPaused: Boolean;
-    FLastUpdateTime: TDateTime;
-    FLock: TCriticalSection;
-    procedure Process();
     type
-      InnerThread = class(TThread)
+      TInnerThread = class(TThread)
         private
           FOwner: TChessClock;
         protected
@@ -25,6 +17,20 @@ type
         public
           constructor Create(AOwner: TChessClock);
       end;
+    var
+      FPlusSecondePerStep: Cardinal;
+      FSetTimeInSecond: Cardinal;
+      FRemainingTimeInSecond: Cardinal;
+      FIsRunning: Boolean;
+      FIsPaused: Boolean;
+      FLastUpdateTime: TDateTime;
+      FLock: TCriticalSection;
+      FInnerThread: TInnerThread;
+    procedure Process();
+    procedure UpdateRemainingTime;
+    procedure StartClock;
+    procedure StopClock;
+    function GetCurrentRemainingTime: Cardinal;
   published
     property SetTimeInSecond: Cardinal read FSetTimeInSecond write FSetTimeInSecond;
     property RemainingTimeInSecond: Cardinal read FRemainingTimeInSecond write FRemainingTimeInSecond;
@@ -75,18 +81,81 @@ type
     /// <param name="Seconds">秒数</param>
     /// <returns>错误码，默认为0，无错误</returns>
     function SetPlusTime(const Seconds: Cardinal): TErrorCode;
+
+    // 额外方法：添加时间（用于加时）
+    function AddTime(const Seconds: Cardinal): TErrorCode;
     constructor Create;
     destructor Destroy; override;
   end;
 
 implementation
 
+uses
+  Sysutils, DateUtils;
 { TChessClock }
 
 function TChessClock.SetPlusTime(const Seconds: Cardinal): TErrorCode;
 begin
-  FPlusSecondePerStep := Seconds;
-  Result := TErrorCode.ecDummy;
+  FLock.Enter;
+  try
+    FPlusSecondePerStep := Seconds;
+    Result := TErrorCode.ecSuccess;
+  finally
+    FLock.Leave;
+  end;
+end;
+
+procedure TChessClock.StartClock;
+begin
+  FLock.Enter;
+  try
+    if not FIsRunning then
+    begin
+      FIsRunning := True;
+      FIsPaused := False;
+      FLastUpdateTime := Now;
+    end;
+  finally
+    FLock.Leave;
+  end;
+end;
+
+procedure TChessClock.StopClock;
+begin
+  FLock.Enter;
+  try
+    FIsRunning := False;
+    FIsPaused := False;
+  finally
+    FLock.Leave;
+  end;
+end;
+
+procedure TChessClock.UpdateRemainingTime;
+var
+  CurrentTime: TDateTime;
+  ElapsedSeconds: Integer;
+begin
+  if FIsRunning and not FIsPaused then
+  begin
+    CurrentTime := Now;
+    ElapsedSeconds := SecondsBetween(CurrentTime, FLastUpdateTime);
+
+    if ElapsedSeconds > 0 then
+    begin
+      if Cardinal(ElapsedSeconds) >= FRemainingTimeInSecond then
+      begin
+        FRemainingTimeInSecond := 0;
+        FIsRunning := False;
+      end
+      else
+      begin
+        Dec(FRemainingTimeInSecond, ElapsedSeconds);
+      end;
+
+      FLastUpdateTime := CurrentTime;
+    end;
+  end;
 end;
 
 procedure TChessClock.Process;
@@ -94,67 +163,167 @@ begin
 
 end;
 
+function TChessClock.AddTime(const Seconds: Cardinal): TErrorCode;
+begin
+  FLock.Enter;
+  try
+    Inc(FRemainingTimeInSecond, Seconds);
+    Result := TErrorCode.ecSuccess;
+  finally
+    FLock.Leave;
+  end;
+end;
+
 constructor TChessClock.Create();
 begin
-  inherited;
+  inherited Create;
+  FLock := TCriticalSection.Create;
   FSetTimeInSecond := 0;
   FRemainingTimeInSecond := 0;
+  FIsRunning := False;
+  FIsPaused := False;
+  FPlusSecondePerStep := 0;
+  FLastUpdateTime := Now;
+  FInnerThread := TInnerThread.Create(Self);
 end;
 
 destructor TChessClock.Destroy;
 begin
-
-  inherited;
+  StopClock;
+  if Assigned(FInnerThread) then
+  begin
+    FInnerThread.Terminate;
+    FInnerThread.WaitFor;
+    FreeAndNil(FInnerThread);
+  end;
+  FreeAndNil(FLock);
+  inherited Destroy;
 end;
 
 {$REGION 'ICountDownClock'}
-function TChessClock.GetRemainingTime(out Hours, Minutes, Seconds: Word): TErrorCode;
+function TChessClock.GetCurrentRemainingTime: Cardinal;
 begin
-  Hours := RemainingTimeInSecond div 3600;
-  Minutes :=  (RemainingTimeInSecond mod 3600) div 60;
-  Seconds := RemainingTimeInSecond mod 60;
-  Result := TErrorCode.ecDummy;
+  // 如果时钟正在运行且未暂停，需要实时计算剩余时间
+  if FIsRunning and not FIsPaused then
+  begin
+    UpdateRemainingTime;
+  end;
+
+  Result := FRemainingTimeInSecond;
+end;
+
+function TChessClock.GetRemainingTime(out Hours, Minutes, Seconds: Word): TErrorCode;
+var
+  CurrentRemaining: Cardinal;
+begin
+  FLock.Enter;
+  try
+    CurrentRemaining := GetCurrentRemainingTime;
+
+    Hours := CurrentRemaining div 3600;
+    Minutes := (CurrentRemaining mod 3600) div 60;
+    Seconds := CurrentRemaining mod 60;
+    Result := TErrorCode.ecSuccess;
+  finally
+    FLock.Leave;
+  end;
 end;
 
 function TChessClock.IsRunning(out Running: Boolean): TErrorCode;
 begin
-
-  Result := TErrorCode.ecDummy;
+  FLock.Enter;
+  try
+    Running := FIsRunning and not FIsPaused;
+    Result := TErrorCode.ecSuccess;
+  finally
+    FLock.Leave;
+  end;
 end;
 
 procedure TChessClock.Pause;
 begin
-
+  FLock.Enter;
+  try
+    if FIsRunning and not FIsPaused then
+    begin
+      UpdateRemainingTime;
+      FIsPaused := True;
+    end;
+  finally
+    FLock.Leave;
+  end;
 end;
 
 procedure TChessClock.Reset;
 begin
-  RemainingTimeInSecond := SetTimeInSecond
+  FLock.Enter;
+  try
+    FIsRunning := False;
+    FIsPaused := False;
+    RemainingTimeInSecond := SetTimeInSecond;
+    FLastUpdateTime := Now;
+  finally
+    FLock.Leave;
+  end;
+
 end;
 
 procedure TChessClock.Resume;
 begin
-
+  FLock.Enter;
+  try
+    if FIsRunning and FIsPaused then
+    begin
+      FLastUpdateTime := Now;
+      FIsPaused := False;
+    end;
+  finally
+    FLock.Leave;
+  end;
 end;
 
 function TChessClock.SetCountdownTime(const Hours, Minutes, Seconds: Word): TErrorCode;
 begin
-  SetTimeInSecond := Hours * 3600 + Minutes * 60 + Seconds;
-  Result := TErrorCode.ecDummy;
+  FLock.Enter;
+  try
+    SetTimeInSecond := Hours * 3600 + Minutes * 60 + Seconds;
+    FRemainingTimeInSecond := FSetTimeInSecond;
+    Result := TErrorCode.ecSuccess;
+  finally
+    FLock.Leave;
+  end;
 end;
 {$ENDREGION}
 
-{ TChessClock.InnerThread }
+{ TChessClock.TInnerThread }
 
-constructor TChessClock.InnerThread.Create(AOwner: TChessClock);
+constructor TChessClock.TInnerThread.Create(AOwner: TChessClock);
 begin
+  inherited Create(False);
   FOwner := AOwner;
+  FreeOnTerminate := False;
 end;
 
-procedure TChessClock.InnerThread.Execute;
+procedure TChessClock.TInnerThread.Execute;
 begin
   inherited;
+  while not Terminated do
+  begin
+    if FOwner.FIsRunning and not FOwner.FIsPaused then
+    begin
+      FOwner.UpdateRemainingTime;
 
+      // 检查时间是否用完
+      if FOwner.GetCurrentRemainingTime <= 0 then
+      begin
+        FOwner.FIsRunning := False;
+        Break;
+      end;
+    end;
+
+    // 每100毫秒更新一次
+    Sleep(1);
+  end;
 end;
 
 end.
