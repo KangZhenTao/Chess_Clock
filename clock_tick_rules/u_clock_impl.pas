@@ -3,7 +3,7 @@
 interface
 
 uses
-  u_clock_intf, Classes;
+  u_clock_intf, Classes, SyncObjs;
 
 type
   TChessClock = class(TInterfacedObject, ICountDownClock)
@@ -11,10 +11,20 @@ type
     FPlusSecondePerStep: Cardinal;
     FSetTimeInSecond: Cardinal;
     FRemainingTimeInSecond: Cardinal;
+    FIsRunning: Boolean;
+    FIsPaused: Boolean;
+    FLastUpdateTime: TDateTime;
+    FLock: TCriticalSection;
     procedure Process();
-    type InnerThread = class(TThread)
-
-    end;
+    type
+      InnerThread = class(TThread)
+        private
+          FOwner: TChessClock;
+        protected
+          procedure Execute; override;
+        public
+          constructor Create(AOwner: TChessClock);
+      end;
   published
     property SetTimeInSecond: Cardinal read FSetTimeInSecond write FSetTimeInSecond;
     property RemainingTimeInSecond: Cardinal read FRemainingTimeInSecond write FRemainingTimeInSecond;
@@ -133,6 +143,19 @@ begin
   Result := TErrorCode.ecDummy;
 end;
 {$ENDREGION}
+
+{ TChessClock.InnerThread }
+
+constructor TChessClock.InnerThread.Create(AOwner: TChessClock);
+begin
+  FOwner := AOwner;
+end;
+
+procedure TChessClock.InnerThread.Execute;
+begin
+  inherited;
+
+end;
 
 end.
 
