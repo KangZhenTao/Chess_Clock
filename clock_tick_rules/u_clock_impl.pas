@@ -28,8 +28,6 @@ type
       FInnerThread: TInnerThread;
     procedure Process();
     procedure UpdateRemainingTime;
-    procedure StartClock;
-    procedure StopClock;
     function GetCurrentRemainingTime: Cardinal;
   published
     property SetTimeInSecond: Cardinal read FSetTimeInSecond write FSetTimeInSecond;
@@ -60,6 +58,10 @@ type
     /// </summary>
     procedure Resume;
 
+    procedure Start;
+
+    procedure Stop;
+
     /// <summary>
     /// 获取剩余时间
     /// </summary>
@@ -72,7 +74,7 @@ type
     /// <summary>
     /// 检查时钟是否在运行
     /// </summary>
-    function IsRunning(out Running: Boolean): TErrorCode;
+    function IsRunning(): Boolean;
     {$ENDREGION}
 
     /// <summary>
@@ -105,7 +107,7 @@ begin
   end;
 end;
 
-procedure TChessClock.StartClock;
+procedure TChessClock.Start;
 begin
   FLock.Enter;
   try
@@ -120,7 +122,7 @@ begin
   end;
 end;
 
-procedure TChessClock.StopClock;
+procedure TChessClock.Stop;
 begin
   FLock.Enter;
   try
@@ -189,7 +191,7 @@ end;
 
 destructor TChessClock.Destroy;
 begin
-  StopClock;
+  Stop;
   if Assigned(FInnerThread) then
   begin
     FInnerThread.Terminate;
@@ -229,12 +231,11 @@ begin
   end;
 end;
 
-function TChessClock.IsRunning(out Running: Boolean): TErrorCode;
+function TChessClock.IsRunning(): Boolean;
 begin
   FLock.Enter;
   try
-    Running := FIsRunning and not FIsPaused;
-    Result := TErrorCode.ecSuccess;
+    Result := FIsRunning and not FIsPaused;
   finally
     FLock.Leave;
   end;

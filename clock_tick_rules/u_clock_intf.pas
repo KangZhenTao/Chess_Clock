@@ -38,6 +38,10 @@ type
     /// </summary>
     procedure Resume;
 
+    procedure Start;
+
+    procedure Stop;
+
     /// <summary>
     /// 获取剩余时间
     /// </summary>
@@ -50,7 +54,7 @@ type
     /// <summary>
     /// 检查时钟是否在运行
     /// </summary>
-    function IsRunning(out Running: Boolean): TErrorCode;
+    function IsRunning(): Boolean;
   end;
 
 implementation
