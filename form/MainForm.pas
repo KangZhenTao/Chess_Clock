@@ -14,6 +14,7 @@ type
       lblLeftTime: TLabel;
       lblRightTime: TLabel;
       tmrFreshContent: TTimer;
+      mmoDebugMsg: TMemo;
     procedure pnlLeftClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure tmrFreshContentTimer(Sender: TObject);
@@ -23,6 +24,7 @@ type
   private
     FRightChessClock: TChessClock;
     FLeftChessClock: TChessClock;
+    cnt: Integer;
     { Private declarations }
   public
     { Public declarations }
@@ -41,7 +43,7 @@ procedure TForm1.FormCreate(Sender: TObject);
   begin
     AChessClock := TChessClock.Create;
     AChessClock.SetPlusTime(30);
-    AChessClock.SetTimeInSecond := 30 * 60;
+    AChessClock.SetCountdownTime(0, 30, 0);
   end;
 
 begin
@@ -51,14 +53,16 @@ end;
 
 procedure TForm1.pnlLeftClick(Sender: TObject);
 begin
-  if FLeftChessClock.IsRunning and not FLeftChessClock.IsPausing then
+  if FLeftChessClock.IsRunning then
   begin
-    FLeftChessClock.Pause;
+    if not FLeftChessClock.IsPausing then
+      FLeftChessClock.Pause;
   end;
 
-  if FRightChessClock.IsRunning and FRightChessClock.IsPausing then
+  if FRightChessClock.IsRunning then
   begin
-    FRightChessClock.Resume;
+    if FRightChessClock.IsPausing then
+      FRightChessClock.Resume;
   end
   else
   begin
@@ -68,14 +72,16 @@ end;
 
 procedure TForm1.pnlRightClick(Sender: TObject);
 begin
-  if FRightChessClock.IsRunning and not FRightChessClock.IsPausing then
+  if FRightChessClock.IsRunning then
   begin
-    FRightChessClock.Pause;
+    if not FRightChessClock.IsPausing then
+      FRightChessClock.Pause;
   end;
 
-  if FLeftChessClock.IsRunning and FLeftChessClock.IsPausing then
+  if FLeftChessClock.IsRunning then
   begin
-    FLeftChessClock.Resume;
+    if FLeftChessClock.IsPausing then
+      FLeftChessClock.Resume;
   end
   else
   begin
@@ -84,18 +90,31 @@ begin
 end;
 
 procedure TForm1.tmrFreshContentTimer(Sender: TObject);
+
   procedure UpdateTimeShow();
   var
-    Hours, Minutes, Seconds:Word;
+    Hours, Minutes, Seconds: Word;
   begin
     FLeftChessClock.GetRemainingTime(Hours, Minutes, Seconds);
-    lblLeftTime.Caption := Format('%d:%d:%d',[Hours, Minutes, Seconds]);
+    lblLeftTime.Caption := Format('%d:%d:%d', [Hours, Minutes, Seconds]);
     FRightChessClock.GetRemainingTime(Hours, Minutes, Seconds);
-    lblRightTime.Caption := Format('%d:%d:%d',[Hours, Minutes, Seconds]);
+    lblRightTime.Caption := Format('%d:%d:%d', [Hours, Minutes, Seconds]);
+  end;
+
+  procedure UpdateDebugMsg();
+  begin
+    mmoDebugMsg.Lines.Add('Left : ' + FLeftChessClock.ShowDebugMsg());
+    mmoDebugMsg.Lines.Add('Right : ' + FRightChessClock.ShowDebugMsg());
   end;
 
 begin
   UpdateTimeShow();
+  Inc(cnt);
+  if cnt mod 100 = 0 then
+  begin
+
+    UpdateDebugMsg();
+  end;
 end;
 
 end.

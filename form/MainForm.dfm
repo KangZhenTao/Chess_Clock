@@ -58,6 +58,15 @@ object Form1: TForm1
       ParentFont = False
     end
   end
+  object mmoDebugMsg: TMemo
+    Left = 544
+    Top = 496
+    Width = 185
+    Height = 89
+    Lines.Strings = (
+      'mmoDebugMsg')
+    TabOrder = 2
+  end
   object tmrFreshContent: TTimer
     Interval = 1
     OnTimer = tmrFreshContentTimer

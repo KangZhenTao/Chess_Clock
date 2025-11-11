@@ -10,12 +10,12 @@ type
   private
     type
       TInnerThread = class(TThread)
-        private
-          FOwner: TChessClock;
-        protected
-          procedure Execute; override;
-        public
-          constructor Create(AOwner: TChessClock);
+      private
+        FOwner: TChessClock;
+      protected
+        procedure Execute; override;
+      public
+        constructor Create(AOwner: TChessClock);
       end;
     var
       FPlusSecondePerStep: Cardinal;
@@ -29,10 +29,9 @@ type
     procedure Process();
     procedure UpdateRemainingTime;
     function GetCurrentRemainingTime: Cardinal;
-  published
-    property SetTimeInSecond: Cardinal read FSetTimeInSecond write FSetTimeInSecond;
-    property RemainingTimeInSecond: Cardinal read FRemainingTimeInSecond write FRemainingTimeInSecond;
   public
+    function ShowDebugMsg(): string;
+
     {$REGION 'ICountDownClock'}
     /// <summary>
     /// 设置倒计时时间
@@ -110,6 +109,17 @@ begin
   finally
     FLock.Leave;
   end;
+end;
+
+function TChessClock.ShowDebugMsg(): string;
+begin
+  Result := Format('%s %s %s %s %s %s ',
+    [IntToStr(FPlusSecondePerStep),
+      IntToStr(FSetTimeInSecond),
+      IntToStr(FRemainingTimeInSecond),
+      BoolToStr(FIsRunning, True),
+      BoolToStr(FIsPaused, True),
+      DateToStr(FLastUpdateTime)]);
 end;
 
 procedure TChessClock.Start;
@@ -250,7 +260,7 @@ function TChessClock.IsRunning(): Boolean;
 begin
   FLock.Enter;
   try
-    Result := FIsRunning and not FIsPaused;
+    Result := FIsRunning;
   finally
     FLock.Leave;
   end;
@@ -276,7 +286,7 @@ begin
   try
     FIsRunning := False;
     FIsPaused := False;
-    RemainingTimeInSecond := SetTimeInSecond;
+    FRemainingTimeInSecond := FSetTimeInSecond;
     FLastUpdateTime := Now;
   finally
     FLock.Leave;
@@ -302,7 +312,7 @@ function TChessClock.SetCountdownTime(const Hours, Minutes, Seconds: Word): TErr
 begin
   FLock.Enter;
   try
-    SetTimeInSecond := Hours * 3600 + Minutes * 60 + Seconds;
+    FSetTimeInSecond := Hours * 3600 + Minutes * 60 + Seconds;
     FRemainingTimeInSecond := FSetTimeInSecond;
     Result := TErrorCode.ecSuccess;
   finally
