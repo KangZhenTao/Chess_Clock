@@ -51,12 +51,12 @@ end;
 
 procedure TForm1.pnlLeftClick(Sender: TObject);
 begin
-  if FLeftChessClock.IsRunning then
+  if FLeftChessClock.IsRunning and not FLeftChessClock.IsPausing then
   begin
     FLeftChessClock.Pause;
   end;
 
-  if FRightChessClock.IsRunning then
+  if FRightChessClock.IsRunning and FRightChessClock.IsPausing then
   begin
     FRightChessClock.Resume;
   end
@@ -68,12 +68,12 @@ end;
 
 procedure TForm1.pnlRightClick(Sender: TObject);
 begin
-  if FRightChessClock.IsRunning then
+  if FRightChessClock.IsRunning and not FRightChessClock.IsPausing then
   begin
     FRightChessClock.Pause;
   end;
 
-  if FLeftChessClock.IsRunning then
+  if FLeftChessClock.IsRunning and FLeftChessClock.IsPausing then
   begin
     FLeftChessClock.Resume;
   end

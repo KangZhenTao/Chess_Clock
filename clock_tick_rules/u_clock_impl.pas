@@ -75,6 +75,11 @@ type
     /// 检查时钟是否在运行
     /// </summary>
     function IsRunning(): Boolean;
+
+    /// <summary>
+    /// 检查时钟是否在运行
+    /// </summary>
+    function IsPausing(): Boolean;
     {$ENDREGION}
 
     /// <summary>
@@ -226,6 +231,16 @@ begin
     Minutes := (CurrentRemaining mod 3600) div 60;
     Seconds := CurrentRemaining mod 60;
     Result := TErrorCode.ecSuccess;
+  finally
+    FLock.Leave;
+  end;
+end;
+
+function TChessClock.IsPausing: Boolean;
+begin
+  FLock.Enter;
+  try
+    Result := FIsPaused;
   finally
     FLock.Leave;
   end;

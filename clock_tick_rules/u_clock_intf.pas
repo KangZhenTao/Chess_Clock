@@ -55,6 +55,10 @@ type
     /// 检查时钟是否在运行
     /// </summary>
     function IsRunning(): Boolean;
+    /// <summary>
+    /// 检查时钟是否在运行
+    /// </summary>
+    function IsPausing(): Boolean;
   end;
 
 implementation
