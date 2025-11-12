@@ -22,9 +22,11 @@ type
       pnlRight: TPanel;
     procedure pnlRightClick(Sender: TObject);
   private
-    FRightChessClock: TChessClock;
-    FLeftChessClock: TChessClock;
-    cnt: Integer;
+    procedure ChessClockInit(var AChessClock: TChessClock);
+    var
+      FRightChessClock: TChessClock;
+      FLeftChessClock: TChessClock;
+      cnt: Integer;
     { Private declarations }
   public
     { Public declarations }
@@ -37,15 +39,15 @@ implementation
 
 {$R *.dfm}
 
+procedure TForm1.ChessClockInit(var AChessClock: TChessClock);
+begin
+  if not Assigned(AChessClock) then
+   AChessClock := TChessClock.Create;
+  AChessClock.SetPlusTime(30);
+  AChessClock.SetCountdownTime(0, 30, 0);
+end;
+
 procedure TForm1.FormCreate(Sender: TObject);
-
-  procedure ChessClockInit(var AChessClock: TChessClock);
-  begin
-    AChessClock := TChessClock.Create;
-    AChessClock.SetPlusTime(30);
-    AChessClock.SetCountdownTime(0, 30, 0);
-  end;
-
 begin
   ChessClockInit(FLeftChessClock);
   ChessClockInit(FRightChessClock)
