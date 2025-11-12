@@ -300,6 +300,7 @@ begin
   try
     if FIsRunning and FIsPaused then
     begin
+      Inc(FRemainingTimeInSecond, FPlusSecondePerStep);
       FLastUpdateTime := Now;
       FIsPaused := False;
     end;
